@@ -1457,7 +1457,12 @@ async def do_manage_documents(content: str, owner: Optional[str] = None) -> Dict
             doc_id = args.get("document_id") or args.get("id") or args.get("uid")
             if not doc_id:
                 return {"error": "Need document_id (use action=list to find one)", "exit_code": 1}
-            doc = _get_owned_document(db, Document, doc_id, owner, active_only=True)
+            # Read any owned document by id, active or not. `is_active` flags
+            # the single doc currently open in a session; opening/importing
+            # another doc deactivates all others, so most reopenable docs are
+            # inactive. edit_document already ignores this flag, so gating read
+            # on it made a reopened doc unreadable yet still editable (#2179).
+            doc = _get_owned_document(db, Document, doc_id, owner)
             if not doc:
                 return {"error": f"Document '{doc_id}' not found", "exit_code": 1}
             body = doc.current_content or ""
