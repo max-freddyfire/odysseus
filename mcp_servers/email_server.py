@@ -467,7 +467,7 @@ def _list_emails(folder="INBOX", max_results=20, unresponded_only=False,
             summary = cached.get("summary", "")
 
             results.append({
-                "uid": uid.decode(),
+                "uid": uid.decode() if isinstance(uid, bytes) else str(uid),
                 "message_id": message_id,
                 "subject": subject,
                 "from": sender_display,
@@ -566,7 +566,7 @@ def _search_emails(query, folders=None, max_results=20, account=None):
                         sender_display = sender_name or sender_addr
                         cached = cache.get(subject, {})
                         out.append({
-                            "uid": uid.decode(),
+                            "uid": uid.decode() if isinstance(uid, bytes) else str(uid),
                             "message_id": message_id,
                             "subject": subject,
                             "from": sender_display,
