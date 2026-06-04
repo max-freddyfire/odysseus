@@ -3167,6 +3167,17 @@ function initializeEventListeners() {
     });
     textarea.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+        // If the slash-command menu is open, let it handle Enter: select the
+        // highlighted command instead of submitting. If the user has typed a
+        // full command, acceptOnEnter() returns false and we fall through to
+        // the normal submit path.
+        if (window._slashAutocomplete && window._slashAutocomplete.isOpen()) {
+          if (window._slashAutocomplete.acceptOnEnter()) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            return;
+          }
+        }
         // If ghost autocomplete is active, accept the suggestion instead of submitting
         if (window._ghostAutocomplete && window._ghostAutocomplete.isActive()) {
           e.preventDefault();

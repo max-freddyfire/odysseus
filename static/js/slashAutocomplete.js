@@ -249,6 +249,28 @@ export function initSlashAutocomplete(textarea) {
     }
   });
 
+  // Public API for the composer's Enter handler (static/app.js). The Enter-to-
+  // send listeners there are registered before this module (which loads via a
+  // dynamic import) and run first, so this module's own keydown listener cannot
+  // win the race: e.preventDefault() only cancels the browser default, not the
+  // sibling send listeners. To make Enter select the highlighted command, the
+  // send handler asks this menu to take the key first, exactly as it already
+  // defers to window._ghostAutocomplete.
+  window._slashAutocomplete = {
+    isOpen() { return visible && items.length > 0; },
+    // Handle Enter while the menu is open. Returns true if it inserted the
+    // highlighted command (caller must not submit), or false when the user has
+    // typed a full command and the normal submit path should run.
+    acceptOnEnter() {
+      if (!visible || !items.length) return false;
+      const v = textarea.value.trim();
+      const exactHit = items.find(it => it.token === v || it.aliases.includes(v));
+      if (exactHit) { hide(); return false; }
+      insert(items[selectedIdx].token);
+      return true;
+    },
+  };
+
   // Re-position on window resize / scroll
   window.addEventListener('resize', () => { if (visible) _position(popup, textarea); });
 
