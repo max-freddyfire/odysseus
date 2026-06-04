@@ -137,6 +137,8 @@ _GENERAL_ENGINES = os.environ.get("SEARXNG_GENERAL_ENGINES", "bing,mojeek,presea
 def searxng_search_api(query: str, count: int = 10, categories: str = "general",
                        time_filter: Optional[str] = None) -> List[dict]:
     """Search using SearXNG JSON API. Returns list of {title, url, snippet}."""
+    if not isinstance(query, str):
+        query = ""
     instance = _get_search_instance()
     api_key = ""
     headers = {"User-Agent": "Mozilla/5.0"}
