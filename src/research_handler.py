@@ -22,6 +22,23 @@ logger = logging.getLogger(__name__)
 RESEARCH_DATA_DIR = Path("data/deep_research")
 
 
+def _content_to_str(content) -> str:
+    """Flatten a message's content to plain text.
+
+    ChatMessage.content carries three shapes: a plain string, a multimodal list
+    of content blocks (vision/image turns), or None (tool-call turns). Mirrors
+    ``_content_to_text`` in routes/session_routes.py.
+    """
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        return "\n".join(
+            b.get("text", "") for b in content
+            if isinstance(b, dict) and b.get("text")
+        )
+    return ""
+
+
 def _bounded_int(value, *, default: int, minimum: int, maximum: int) -> int:
     try:
         n = int(value)
@@ -114,7 +131,7 @@ class ResearchHandler:
                 return latest_message  # short or long, it's a real topic
             # Affirmation, or empty/punctuation-only: use the original ask.
             for m in history:
-                c = (m.content or "").strip()
+                c = _content_to_str(m.content).strip()
                 if m.role == "user" and c and _normalize(c) not in _AFFIRMATIONS:
                     return c
             return latest_message
@@ -125,8 +142,8 @@ class ResearchHandler:
         # Take last 6 messages max for context
         recent = history[-6:]
         convo = "\n".join(
-            f"{'User' if m.role == 'user' else 'Assistant'}: {m.content[:500]}"
-            for m in recent if m.content
+            f"{'User' if m.role == 'user' else 'Assistant'}: {_content_to_str(m.content)[:500]}"
+            for m in recent if _content_to_str(m.content)
         )
         convo += f"\nUser: {latest_message}"
 
