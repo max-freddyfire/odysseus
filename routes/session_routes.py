@@ -905,7 +905,7 @@ def setup_session_routes(session_manager: SessionManager, config: dict, webhook_
             "{n}", str(prior_compactions + 1)
         )
         convo_text = "\n".join(
-            f"{m.role.upper()}: {(m.content or '')[:2000]}"
+            f"{m.role.upper()}: {_content_to_text(m.content)[:2000]}"
             for m in older
         )
         try:
