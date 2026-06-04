@@ -943,7 +943,7 @@ async def do_manage_tasks(content: str, owner: Optional[str] = None) -> Dict:
             task = db.query(ScheduledTask).filter(ScheduledTask.id == task_id).first()
             if not task:
                 return {"error": f"Task {task_id} not found", "exit_code": 1}
-            if owner and task.owner and task.owner != owner:
+            if owner and task.owner != owner:
                 return {"error": "Access denied", "exit_code": 1}
 
             changed = []
@@ -989,7 +989,7 @@ async def do_manage_tasks(content: str, owner: Optional[str] = None) -> Dict:
             task = db.query(ScheduledTask).filter(ScheduledTask.id == task_id).first()
             if not task:
                 return {"error": f"Task {task_id} not found", "exit_code": 1}
-            if owner and task.owner and task.owner != owner:
+            if owner and task.owner != owner:
                 return {"error": "Access denied", "exit_code": 1}
             name = task.name
             db.delete(task)
@@ -1003,7 +1003,7 @@ async def do_manage_tasks(content: str, owner: Optional[str] = None) -> Dict:
             task = db.query(ScheduledTask).filter(ScheduledTask.id == task_id).first()
             if not task:
                 return {"error": f"Task {task_id} not found", "exit_code": 1}
-            if owner and task.owner and task.owner != owner:
+            if owner and task.owner != owner:
                 return {"error": "Access denied", "exit_code": 1}
 
             if action == "pause":
@@ -1024,7 +1024,7 @@ async def do_manage_tasks(content: str, owner: Optional[str] = None) -> Dict:
             task = db.query(ScheduledTask).filter(ScheduledTask.id == task_id).first()
             if not task:
                 return {"error": f"Task {task_id} not found", "exit_code": 1}
-            if owner and task.owner and task.owner != owner:
+            if owner and task.owner != owner:
                 return {"error": "Access denied", "exit_code": 1}
 
             from src.event_bus import get_task_scheduler
@@ -1963,7 +1963,7 @@ async def do_manage_notes(content: str, owner: Optional[str] = None) -> Dict:
             note = db.query(Note).filter(Note.id.startswith(note_id)).first() if note_id else None
             if not note:
                 return {"error": f"Note '{note_id}' not found", "exit_code": 1}
-            if owner is not None and note.owner and note.owner != owner:
+            if owner is not None and note.owner != owner:
                 return {"error": "Note not found", "exit_code": 1}
             for field in ("title", "content", "note_type", "color", "label"):
                 if field in args and args[field] is not None:
@@ -1999,7 +1999,7 @@ async def do_manage_notes(content: str, owner: Optional[str] = None) -> Dict:
             note = db.query(Note).filter(Note.id.startswith(note_id)).first() if note_id else None
             if not note:
                 return {"error": f"Note '{note_id}' not found", "exit_code": 1}
-            if owner is not None and note.owner and note.owner != owner:
+            if owner is not None and note.owner != owner:
                 return {"error": "Note not found", "exit_code": 1}
             title = note.title
             db.delete(note)
@@ -2012,7 +2012,7 @@ async def do_manage_notes(content: str, owner: Optional[str] = None) -> Dict:
             note = db.query(Note).filter(Note.id.startswith(note_id)).first() if note_id else None
             if not note:
                 return {"error": f"Note '{note_id}' not found", "exit_code": 1}
-            if owner is not None and note.owner and note.owner != owner:
+            if owner is not None and note.owner != owner:
                 return {"error": "Note not found", "exit_code": 1}
             if not note.items:
                 return {"error": "Note has no checklist items", "exit_code": 1}
