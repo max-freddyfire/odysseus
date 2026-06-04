@@ -765,7 +765,7 @@ def setup_email_routes():
             try:
                 import sqlite3 as _sql3
                 _c = _sql3.connect(SCHEDULED_DB)
-                _uid_strs = [u.decode() for u in uid_list]
+                _uid_strs = [u.decode() if isinstance(u, bytes) else str(u) for u in uid_list]
                 if _uid_strs:
                     placeholders = ",".join("?" * len(_uid_strs))
                     _owner_clause, _owner_params = _email_tag_owner_clause(account_id, owner)
@@ -792,7 +792,7 @@ def setup_email_routes():
             # batched form trades a slightly bigger response for one round-trip.
             emails = []
             if uid_list:
-                fetch_set = b",".join(uid_list)
+                fetch_set = b",".join(_uid_bytes(u) for u in uid_list)
                 try:
                     status, msg_data = _imap_uid_fetch(conn, fetch_set, "(UID FLAGS RFC822.HEADER RFC822.SIZE)")
                 except Exception as e:
