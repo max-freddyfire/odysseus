@@ -1,5 +1,4 @@
 from services.hwfit.fit import rank_models
-from services.hwfit.models import get_models
 
 
 def test_rank_models_handles_non_dict_system():
