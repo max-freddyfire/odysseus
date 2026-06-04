@@ -96,8 +96,9 @@ async def _run_followup(rec: dict) -> bool:
         if agent_runs.is_active(sess.id):
             logger.info("bg-followup: session %s busy (live turn) — deferring job %s", sess.id, rec.get("id"))
             return False
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("bg-followup: could not check session %s live state (%s) — deferring", sess.id, e)
+        return False
 
     inject = (
         f"[Background job {rec['id']} finished]\n\n"
