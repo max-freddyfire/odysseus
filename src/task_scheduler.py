@@ -893,8 +893,13 @@ class TaskScheduler:
                             cron_expression=task_obj.cron_expression,
                             tz_name=_resolve_task_timezone(db, task_obj),
                         )
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        from datetime import timedelta as _td
+                        logger.warning(
+                            "Task %s: next_run recompute failed (%s) — deferring 5 min to prevent busy-loop",
+                            task_id, e,
+                        )
+                        task_obj.next_run = _utcnow() + _td(minutes=5)
                 try:
                     db.commit()
                 except Exception as commit_err:
