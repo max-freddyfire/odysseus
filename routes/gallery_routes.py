@@ -72,7 +72,8 @@ def setup_gallery_routes() -> APIRouter:
             img_dir = Path("data/generated_images")
             img_dir.mkdir(parents=True, exist_ok=True)
 
-            ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else "png"
+            _fname = file.filename or ""
+            ext = _fname.rsplit(".", 1)[-1].lower() if "." in _fname else "png"
             VIDEO_EXTS = {"mp4", "mov", "webm", "mkv", "m4v"}
             IMAGE_EXTS = {"png", "jpg", "jpeg", "webp", "gif"}
             if ext not in VIDEO_EXTS and ext not in IMAGE_EXTS:
@@ -86,7 +87,7 @@ def setup_gallery_routes() -> APIRouter:
             # and the failure path logs a noisy WARNING. We'll add ffprobe-based
             # video metadata extraction in a follow-up.
             exif = {} if is_video else _extract_exif(content)
-            original_name = file.filename.rsplit(".", 1)[0] if "." in file.filename else file.filename
+            original_name = (_fname.rsplit(".", 1)[0] if "." in _fname else _fname) or "upload"
 
             img_id = str(uuid.uuid4())
             db.add(GalleryImage(
