@@ -765,31 +765,47 @@ def _classify_agent_request(messages: List[Dict], last_user: str) -> Dict[str, o
     def has(*patterns: str) -> bool:
         return any(re.search(p, q) for p in patterns)
 
-    if has(r"\b(cookbook|serve|serving|served|launch|start|preset|vllm|sglang|llama\.?cpp|ollama|download|downloading|pull|cached models?|running models?|model servers?|models? (?:are )?running|what models?|model picker|gpu box|kierkegaard|odysseus|ajax|qwen|gemma|llama|mistral|minimax)\b"):
+    # Domain keywords are matched in English plus, where phrasing differs,
+    # Swedish / Norwegian / Danish / German / Spanish / French / Italian —
+    # models
+    # mirror the user's language, and a request that matches no domain is
+    # flagged low_signal, which skips tool retrieval entirely (#3668
+    # follow-up). Each language line sticks to high-precision nouns/verbs;
+    # chosen so they do not collide with common English words.
+    if has(r"\b(cookbook|serve|serving|served|launch|start|preset|vllm|sglang|llama\.?cpp|ollama|download|downloading|pull|cached models?|running models?|model servers?|models? (?:are )?running|what models?|model picker|gpu box|kierkegaard|odysseus|ajax|qwen|gemma|llama|mistral|minimax)\b",
+           r"\b(last ned|hent ned|ladda ner|hämta hem|herunterladen|descarga\w*|télécharge\w*|scarica\w*|modell(?:e|en|er|ene|erna|o|i)?|modelo\w*|modèle\w*)\b"):
         domains.add("cookbook")
-    if has(r"\b(emails?|mails?|gmail|inbox|reply|forward|cc|bcc|send email|compose email|draft email|message chris|message him|message her)\b"):
+    if has(r"\b(emails?|mails?|gmail|inbox|reply|forward|cc|bcc|send email|compose email|draft email|message chris|message him|message her)\b",
+           r"\b(e-?post\w*|innboks\w*|inkorg\w*|indbakke\w*|posteingang\w*|mejl\w*|correos?|courriels?|boîte de réception|bandeja de entrada|posta in arrivo)\b"):
         domains.add("email")
-    if has(r"\b(note|todo|to-do|checklist|task list|remind me|reminder|buy|pickup|pick up)\b"):
+    if has(r"\b(note|todo|to-do|checklist|task list|remind me|reminder|buy|pickup|pick up)\b",
+           r"\b(notat\w*|anteckning\w*|notiz(?!ie)\w*|huskeliste\w*|gjøremål\w*|påminn\w*|påmind\w*|erinnerung\w*|recordatorio\w*|recuérdame|rappel\w*|rappelle-moi|aufgabenliste\w*|tareas?|tâches?|promemoria\w*|ricordami|notas?)\b"):
         domains.add("notes_calendar_tasks")
     if has(r"\b(every day|every morning|every evening|recurring|automatically|cron|scheduled task|background task)\b"):
         domains.add("notes_calendar_tasks")
-    if has(r"\b(calendar|event|meeting|appointment|schedule)\b"):
+    if has(r"\b(calendar|event|meeting|appointment|schedule)\b",
+           r"\b(kalender\w*|calendario\w*|calendrier\w*|møte\w*|möte\w*|termin(?!a[lt])\w*|avtale\w*|citas?|rendez-vous|reunión\w*|réunion\w*|appuntament\w*|riunion\w*)\b"):
         domains.add("notes_calendar_tasks")
-    if has(r"\b(documents?|docs?|draft|compose|poem|story|essay|outline|letter|edit|rewrite|proofread|suggest|feedback|review this|make a file)\b"):
+    if has(r"\b(documents?|docs?|draft|compose|poem|story|essay|outline|letter|edit|rewrite|proofread|suggest|feedback|review this|make a file)\b",
+           r"\b(dokument\w*|utkast\w*|udkast\w*|entwurf\w*|borrador\w*|brouillon\w*|dikt|gedicht\w*|poemas?|poèmes?|essä\w*|aufsatz\w*|ensayos?|documento\w*|bozza\w*)\b"):
         domains.add("documents")
-    if "notes_calendar_tasks" not in domains and has(r"\bwrite\b"):
+    if "notes_calendar_tasks" not in domains and has(r"\b(write|skriv\w*|schreib\w*|escrib\w*|écri\w*|rédige\w*|scriv\w*)\b"):
         domains.add("documents")
-    if has(r"\b(search|web|google|look up|latest|news|current|weather|forecast|stock price|price of|website|url|https?://|www\.)\b"):
+    if has(r"\b(search|web|google|look up|latest|news|current|weather|forecast|stock price|price of|website|url|https?://|www\.)\b",
+           r"\b(søk\w*|sök\w*|suche\w*|busca\w*|cherche\w*|recherche\w*|nettet|nätet|wetter\w*|väder\w*|vejr\w*|været|værmelding\w*|météo|meteo|nyhet\w*|nachricht\w*|noticias?|actualités?|cerca\w*|notizie)\b"):
         domains.add("web")
     if has(r"\b(research|deep dive|investigate|look into)\b"):
         domains.add("web")
-    if has(r"\b(open|show|toggle|turn on|turn off|disable|enable|switch model|change model|settings|theme|panel)\b"):
+    if has(r"\b(open|show|toggle|turn on|turn off|disable|enable|switch model|change model|settings|theme|panel)\b",
+           r"\b(åpn\w*|öppn\w*|åbn\w*|öffn\w*|abre|abrir|ouvre\w*|ouvrir|apri|slå på|slå av|skru på|skru av|stäng av|sätt på|schalte\w*|aktiver\w*|deaktiver\w*|désactive\w*)\b"):
         domains.add("ui")
     if has(r"\b(session|chat history|rename chat|delete chat|archive chat|fork chat|list chats)\b"):
         domains.add("sessions")
-    if has(r"\b(file|folder|directory|repo|git|grep|find in files|read file|edit file|shell|terminal|bash|python)\b"):
+    if has(r"\b(file|folder|directory|repo|git|grep|find in files|read file|edit file|shell|terminal|bash|python)\b",
+           r"\b(fil(?:er|en|ene|erna|a)?|mappe\w*|mapp(?:en|ar|er)?|ordner\w*|datei\w*|carpeta\w*|dossiers?|fichier\w*|archivos?|cartell\w*|katalog\w*|verzeichnis\w*)\b"):
         domains.add("files")
-    if has(r"\b(endpoint|api token|mcp|webhook|preference|configure|config|setting)\b"):
+    if has(r"\b(endpoint|api token|mcp|webhook|preference|configure|config|setting)\b",
+           r"\b(innstilling\w*|inställning\w*|indstilling\w*|einstellung\w*|ajustes?|configuración\w*|configura\w*|paramètres?|konfigur\w*|impostazion\w*)\b"):
         domains.add("settings")
 
     low_signal = not continuation and not domains
